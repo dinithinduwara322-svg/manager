@@ -1,0 +1,25 @@
+GitHub repo: lumiere-manager
+Upload index.html at the repository root. Enable GitHub Pages on main / (root).
+Manager: https://lumierecompany07.github.io/lumiere-manager/
+Website URL is preset to https://lumierecompany07.github.io/demo.github.io/
+For a new website address, update Website URL in Manager before uploading a template.
+
+2. Firebase Authentication > Settings > Authorized domains වෙත hosting domain එක add කරන්න.
+3. Firestore Database > Rules යටතේ existing rules තියාගෙන, match /databases/{database}/documents ඇතුළට මේ block එක add කරන්න. YOUR_MANAGER_UID වෙනුවට Firebase Authentication > Users හි ඔබගේ manager account UID එක දාන්න. Publish කරන්න.
+
+match /templateReleases/{release} {
+  function isUploader() {
+    return request.auth != null && request.auth.uid == 'YOUR_MANAGER_UID';
+  }
+  allow get: if true;
+  allow create, delete: if isUploader();
+  match /parts/{part} {
+    allow get: if exists(/databases/$(database)/documents/templateReleases/$(release));
+    allow create, delete: if isUploader();
+  }
+}
+
+4. Existing siteSettings/public rules must permit public reads and authorized manager writes. Keep existing authentication and other collection rules.
+5. Manager > Template Links > Add Template > Template source. Upload folder / ZIP හෝ Use URL තෝරන්න. Use URL නම් hosted HTTPS link එක paste කර Gallery visibility = Published තෝරා Publish Changes කරන්න. Folder එකක් නම් Upload Folder click කරන්න. index.html සහ assets තියෙන folder එක තෝරන්න. ZIP upload එකත් පුළුවන්. LIVE confirmation එකෙන් පස්සේ main page Templates වල ඒ slot එක open කරන්න.
+
+Template ZIP limit 50 MB compressed, 600 files, 115 MiB unpacked. Use built static HTML, CSS, browser JS and relative image/font/media links. Server-side code and build steps must run separately. Scripts that import modules or request additional local files at runtime may need a hosted template URL. Internet access and available Firestore storage, read/write and bandwidth quota are required. Each upload creates a new version. Large media-heavy templates consume quota faster. Existing Cloudflare R2 links still require their original worker and bucket.
